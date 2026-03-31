@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Tableau</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Le Tableau">
+<meta name="theme-color" content="#1a1814">
+<link rel="apple-touch-icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1814;
+    --bg2: #201d17;
+    --card: #f0ebe0;
+    --card-dark: #221f18;
+    --gold: #96722a;
+    --gold-light: #c4a053;
+    --gold-dim: rgba(150,114,42,0.2);
+    --cream: #f0ebe0;
+    --text-dark: #1c1a16;
+    --text-mid: #4a4030;
+    --text-muted-dark: #8a7560;
+    --text-light: rgba(240,235,224,0.85);
+    --text-muted: rgba(240,235,224,0.35);
+    --border-gold: rgba(150,114,42,0.25);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    letter-spacing: 0.04em;
+    color: var(--text-light);
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(26,24,20,0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-gold);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 10px;
+    border-bottom: 1px solid rgba(150,114,42,0.1);
+  }
+
+  .header-clock {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  .hclock-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 38px;
+    font-weight: 300;
+    color: var(--gold-light);
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+
+  .hclock-date {
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.9;
+  }
+
+  .hclock-pct {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: rgba(240,235,224,0.55);
+  }
+
+  .header-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 28px;
+  }
+
+  .sport-badge {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border: 1px solid var(--border-gold);
+    color: var(--gold-light);
+  }
+
+  .sport-badge.rest { color: var(--text-muted); border-color: rgba(150,114,42,0.1); }
+
+  .header-progress {
+    height: 2px;
+    background: rgba(150,114,42,0.1);
+  }
+
+  .header-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transition: width 1s linear;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-tab {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(240,235,224,0.5);
+    font-family: 'Josefin Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .nav-tab:hover { color: var(--text-light); border-color: var(--border-gold); }
+  .nav-tab.active { color: var(--gold-light); border-color: var(--gold-dim); background: rgba(150,114,42,0.06); }
+
+  #next-event {
+    font-size: 13px !important;
+    letter-spacing: 0.12em;
+    color: var(--gold-light) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; padding-top: 100px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ── PAGE: AUJOURD'HUI ── */
+  .today-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1px;
+    background: var(--border-gold);
+    border: 1px solid var(--border-gold);
+    margin: 24px;
+  }
+
+  .block {
+    background: var(--bg);
+    padding: 28px 32px;
+    position: relative;
+  }
+
+  .block-full { grid-column: 1 / -1; }
+
+  .block-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .block-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-gold);
+  }
+
+  /* ── BLOCK: CAP ── */
+  .cap-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .cap-ring-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+  }
+
+  .cap-ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .cap-ring-track { fill: none; stroke: rgba(150,114,42,0.12); stroke-width: 2; }
+  .cap-ring-prog  { fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+
+  .cap-ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--cream);
+  }
+
+  .cap-info { flex: 1; min-width: 0; }
+
+  .cap-objective {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--gold-light);
+    line-height: 1.3;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    word-break: break-word;
+  }
+
+  .cap-objective:hover { opacity: 0.7; }
+  .cap-objective.empty { font-style: normal; font-size: 14px; color: var(--text-muted); letter-spacing: 0.1em; }
+
+  .cap-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── BLOCK: ÉNERGIE ── */
+  .energy-dots {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .e-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-gold);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    letter-spacing: 0;
+    color: transparent;
+  }
+
+  .e-dot:hover { border-color: var(--gold); }
+
+  .e-dot.active-1 { background: #3a6b3a; border-color: #4a8a4a; }
+  .e-dot.active-2 { background: #5a7a2a; border-color: #7aa03a; }
+  .e-dot.active-3 { background: #8a7a20; border-color: #b0a030; }
+  .e-dot.active-4 { background: #8a4a20; border-color: #b06030; }
+  .e-dot.active-5 { background: #7a2020; border-color: #a03030; }
+
+  .energy-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+
+  .energy-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    min-height: 16px;
+  }
+
+  /* ── BLOCK: TÂCHE ── */
+  .task-input-wrap {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .task-check {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--border-gold);
+    flex-shrink: 0;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .task-check.done {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .task-check.done::after {
+    content: '✓';
+    color: #1a1814;
+    font-size: 11px;
+  }
+
+  .task-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--cream);
+    line-height: 1.4;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    word-break: break-word;
+    flex: 1;
+  }
+
+  .task-text:hover { opacity: 0.7; }
+  .task-text.empty { font-size: 14px; font-family: 'Josefin Sans', sans-serif; color: var(--text-muted); letter-spacing: 0.1em; font-style: normal; }
+  .task-text.done-text { text-decoration: line-through; opacity: 0.4; }
+
+  /* ── BLOCK: LE CODE ── */
+  .code-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+  }
+
+  .code-pillar {
+    padding: 0 20px 0 0;
+    margin: 0 20px 0 0;
+    border-right: 1px solid var(--border-gold);
+  }
+
+  .code-pillar:last-child { padding-right: 0; margin-right: 0; border-right: none; }
+
+  .pillar-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .pillar-name {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .pillar-check {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border-gold);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pillar-check:hover { border-color: var(--gold); }
+
+  .pillar-check.done {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .pillar-check.done::after {
+    content: '✓';
+    color: #1a1814;
+    font-size: 11px;
+  }
+
+  /* ── PAGE: HISTORIQUE ── */
+  .history-wrap {
+    padding: 24px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .history-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    margin-bottom: 28px;
+  }
+
+  .history-day {
+    border: 1px solid var(--border-gold);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .history-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    background: var(--card-dark);
+    transition: background 0.2s;
+    user-select: none;
+  }
+
+  .history-day-header:hover { background: rgba(150,114,42,0.06); }
+
+  .history-day-date {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .history-day-summary {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .h-badge {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border: 1px solid var(--border-gold);
+  }
+
+  .h-badge.filled { color: var(--gold-light); border-color: rgba(150,114,42,0.4); }
+
+  .history-day-body {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid var(--border-gold);
+    background: rgba(26,24,20,0.6);
+  }
+
+  .history-day-body.open { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .h-field-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .h-field-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.4;
+  }
+
+  .h-field-val.na { font-style: normal; font-size: 13px; color: var(--text-muted); letter-spacing: 0.1em; font-family: 'Josefin Sans', sans-serif; }
+
+  .h-code-dots { display: flex; gap: 6px; margin-top: 4px; }
+  .h-code-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1px solid var(--border-gold);
+  }
+  .h-code-dot.done { background: var(--gold); border-color: var(--gold); }
+
+  .h-chevron {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .history-day-header.open .h-chevron { transform: rotate(180deg); }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,9,8,0.88);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-bg.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--card-dark);
+    border: 1px solid rgba(150,114,42,0.35);
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    transform: translateY(10px);
+    transition: transform 0.2s;
+  }
+
+  .modal-bg.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  .modal textarea, .modal input[type="text"] {
+    width: 100%;
+    background: rgba(240,235,224,0.05);
+    border: 1px solid rgba(150,114,42,0.25);
+    color: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-style: italic;
+    padding: 14px;
+    resize: none;
+    outline: none;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+
+  .modal textarea:focus, .modal input[type="text"]:focus {
+    border-color: rgba(150,114,42,0.55);
+  }
+
+  .modal textarea::placeholder, .modal input::placeholder {
+    color: rgba(240,235,224,0.2);
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .btn {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 11px 22px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-gold); }
+  .btn-cancel:hover { color: var(--cream); }
+  .btn-confirm { background: var(--gold); color: #1a1814; font-weight: 400; }
+  .btn-confirm:hover { background: var(--gold-light); }
+
+  /* ── LE CODE CARDS ── */
+  .code-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .code-card {
+    background: var(--card);
+    border: 1px solid rgba(150,114,42,0.3);
+    padding: 20px;
+    transition: border-color 0.3s, transform 0.2s;
+    position: relative;
+  }
+
+  .code-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .code-card:hover { border-color: rgba(150,114,42,0.7); transform: translateY(-2px); }
+  .code-card:hover::before { opacity: 1; }
+
+  .cc-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(150,114,42,0.2);
+  }
+
+  .cc-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold);
+  }
+
+  .cc-title {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    font-weight: 400;
+  }
+
+  .cc-principle {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .cc-principle:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+  .cc-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-dark);
+    margin-bottom: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  .cc-desc {
+    font-size: 12px;
+    color: var(--text-muted-dark);
+    line-height: 1.55;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 1024px) {
+    .code-cards { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .code-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 400px) {
+    .code-cards { grid-template-columns: 1fr; }
+  }
+
+  /* ── CITATION DU JOUR ── */
+  .daily-quote-wrap {
+    text-align: center;
+    padding: 16px 40px;
+  }
+
+  .daily-quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--gold-light);
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+
+  .daily-quote-author {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(196,160,83,0.45);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .today-grid { animation: fadeUp 0.6s ease both; }
+
+  /* ── PLANNING ── */
+  .planning-list { display: flex; flex-direction: column; gap: 0; }
+
+  .plan-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(150,114,42,0.1);
+    transition: opacity 0.3s;
+  }
+
+  .plan-item:last-child { border-bottom: none; }
+  .plan-item.past { opacity: 0.28; }
+
+  .plan-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--border-gold);
+    flex-shrink: 0;
+  }
+
+  .plan-item.past .plan-dot { background: rgba(150,114,42,0.25); border-color: transparent; }
+  .plan-item.next .plan-dot { background: var(--gold-light); border-color: var(--gold-light); box-shadow: 0 0 6px rgba(196,160,83,0.45); }
+
+  .plan-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--text-muted);
+    width: 44px;
+    flex-shrink: 0;
+  }
+
+  .plan-item.next .plan-time { color: var(--gold-light); }
+
+  .plan-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    opacity: 0.6;
+    flex: 1;
+  }
+
+  .plan-item.next .plan-label { opacity: 1; color: var(--cream); }
+
+  .plan-arrow { font-size: 10px; color: var(--gold); opacity: 0; }
+  .plan-item.next .plan-arrow { opacity: 1; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .today-grid { grid-template-columns: 1fr; margin: 12px; }
+    .block-full { grid-column: 1; }
+    .header-top { padding: 10px 14px 8px; }
+    .header-bottom { padding: 6px 14px; }
+    .hclock-time { font-size: 22px; }
+    .hclock-date { display: none; }
+    .nav-tab { padding: 5px 8px; font-size: 9px; }
+    .history-day-body.open { grid-template-columns: 1fr; }
+    .page { padding-top: 88px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div class="nav-brand">Le Tableau</div>
+    <div class="header-clock">
+      <div class="hclock-time" id="hclock-time">—</div>
+      <div class="hclock-date" id="hclock-date"></div>
+      <div class="hclock-pct" id="hclock-pct"></div>
+    </div>
+    <div class="sport-badge" id="sport-badge">—</div>
+  </div>
+  <div class="header-bottom">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('today', this)">Aujourd'hui</button>
+      <button class="nav-tab" onclick="showPage('history', this)">7 jours</button>
+    </div>
+    <div id="next-event" style="font-size:11px;letter-spacing:0.15em;color:var(--gold);opacity:0.75"></div>
+  </div>
+  <div class="header-progress"><div class="header-progress-fill" id="progress-fill" style="width:0%"></div></div>
+</header>
+
+<!-- PAGE: AUJOURD'HUI -->
+<div class="page active" id="page-today">
+  <div class="today-grid">
+
+    <!-- OBJECTIF DU JOUR -->
+    <div class="block">
+      <div class="block-label">Objectif du jour</div>
+      <div class="cap-row">
+        <div class="cap-ring-wrap">
+          <svg class="cap-ring-svg" viewBox="0 0 60 60">
+            <circle class="cap-ring-track" cx="30" cy="30" r="26"/>
+            <circle class="cap-ring-prog" id="cap-ring" cx="30" cy="30" r="26"
+              stroke-dasharray="163.4" stroke-dashoffset="0"/>
+          </svg>
+          <div class="cap-ring-center" id="cap-hours">—</div>
+        </div>
+        <div class="cap-info">
+          <div class="cap-objective empty" id="cap-obj" onclick="openModal('cap')">Définir ton objectif</div>
+          <div class="cap-sub" id="cap-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="block">
+      <div class="block-label">Planning du jour</div>
+      <div class="planning-list" id="planning-list"></div>
+    </div>
+
+    <!-- ÉNERGIE -->
+    <div class="block">
+      <div class="block-label">Énergie</div>
+      <div class="energy-label" id="energy-num">—</div>
+      <div class="energy-desc" id="energy-desc">Non défini</div>
+      <div class="energy-dots" id="energy-dots"></div>
+    </div>
+
+    <!-- LE CODE -->
+    <div class="block block-full">
+      <div class="block-label">Le Code</div>
+      <div class="code-cards">
+
+        <div class="code-card">
+          <div class="cc-header"><span class="cc-num">I</span><span class="cc-title">Routine</span></div>
+          <div class="cc-principle"><div class="cc-name">Se lever tôt</div><div class="cc-desc">Commencer avant les autres — pas de chaos, pas de précipitation</div></div>
+          <div class="cc-principle"><div class="cc-name">S'habiller bien</div><div class="cc-desc">Même les jours ordinaires — propre, simple, affûté</div></div>
+          <div class="cc-principle"><div class="cc-name">Anticiper</div><div class="cc-desc">Savoir ce qui compte aujourd'hui plutôt que de réagir</div></div>
+        </div>
+
+        <div class="code-card">
+          <div class="cc-header"><span class="cc-num">II</span><span class="cc-title">Communication</span></div>
+          <div class="cc-principle"><div class="cc-name">Parler moins</div><div class="cc-desc">Ne pas remplir le silence — chaque mot doit peser</div></div>
+          <div class="cc-principle"><div class="cc-name">Voix posée</div><div class="cc-desc">Une voix calme pèse plus lourd qu'une voix forte</div></div>
+          <div class="cc-principle"><div class="cc-name">Ne pas se justifier</div><div class="cc-desc">Tout le monde n'a pas besoin de comprendre tes mouvements</div></div>
+        </div>
+
+        <div class="code-card">
+          <div class="cc-header"><span class="cc-num">III</span><span class="cc-title">En public</span></div>
+          <div class="cc-principle"><div class="cc-name">Marcher avec intention</div><div class="cc-desc">Bouger comme si tu sais où tu vas</div></div>
+          <div class="cc-principle"><div class="cc-name">Contact visuel</div><div class="cc-desc">La confiance sans un mot — le respect s'impose</div></div>
+          <div class="cc-principle"><div class="cc-name">Rester composé</div><div class="cc-desc">Aucun geste nerveux — toujours maître de toi-même</div></div>
+        </div>
+
+        <div class="code-card">
+          <div class="cc-header"><span class="cc-num">IV</span><span class="cc-title">Discipline</span></div>
+          <div class="cc-principle"><div class="cc-name">Le faire quand même</div><div class="cc-desc">Surtout quand tu n'en as pas envie — c'est là que ça compte</div></div>
+          <div class="cc-principle"><div class="cc-name">Maîtriser ses émotions</div><div class="cc-desc">Ne pas réagir à tout — prendre un instant, rester en contrôle</div></div>
+          <div class="cc-principle"><div class="cc-name">Être constant</div><div class="cc-desc">Mêmes habitudes chaque jour — même quand personne ne regarde</div></div>
+        </div>
+
+        <div class="code-card">
+          <div class="cc-header"><span class="cc-num">V</span><span class="cc-title">Vie sociale</span></div>
+          <div class="cc-principle"><div class="cc-name">Choisir ses gens</div><div class="cc-desc">Tout le monde ne mérite pas ton temps ni ton énergie — sois sélectif</div></div>
+          <div class="cc-principle"><div class="cc-name">Rester discret</div><div class="cc-desc">Garder une part de ta vie pour toi — tout n'a pas besoin d'être partagé</div></div>
+          <div class="cc-principle"><div class="cc-name">Tenir sa parole</div><div class="cc-desc">Si tu le dis, tu le fais — les gens retiennent la fiabilité avant tout</div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CITATION DU JOUR -->
+    <div class="block block-full" id="quote-block">
+      <div class="block-label">Citation du jour</div>
+      <div class="daily-quote-wrap">
+        <div class="daily-quote-text" id="daily-quote-text"></div>
+        <div class="daily-quote-author" id="daily-quote-author"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE: HISTORIQUE -->
+<div class="page" id="page-history">
+  <div class="history-wrap">
+    <div class="history-title">Les 7 derniers jours</div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="handleBgClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <textarea id="modal-input" rows="3" style="display:none"></textarea>
+    <input type="text" id="modal-input-line" style="display:none">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-confirm" onclick="saveModal()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const DAYS_FR   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MONTHS_FR = ['jan','fév','mar','avr','mai','jun','jul','août','sep','oct','nov','déc'];
+const ENERGY_LABELS = ['', 'Excellent', 'Bon', 'Moyen', 'Faible', 'Épuisé'];
+const CODE_PILLARS  = ['Routine','Communication','En public','Discipline','Vie sociale'];
+const CIRC_CAP = 2 * Math.PI * 26; // ≈ 163.4
+
+// ── DATE HELPERS ──
+function dateKey(d) {
+  return d.toDateString();
+}
+
+function formatDateShort(d) {
+  return DAYS_FR[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS_FR[d.getMonth()];
+}
+
+// ── STORAGE ──
+function loadDay(key) {
+  const all = JSON.parse(localStorage.getItem('le-tableau') || '{}');
+  return all[key] || { cap: '', task: '', taskDone: false, energy: 0, code: [false,false,false,false,false] };
+}
+
+function saveDay(key, data) {
+  const all = JSON.parse(localStorage.getItem('le-tableau') || '{}');
+  all[key] = data;
+  // Keep only last 30 days
+  const keys = Object.keys(all).sort((a,b) => new Date(b)-new Date(a));
+  keys.slice(30).forEach(k => delete all[k]);
+  localStorage.setItem('le-tableau', JSON.stringify(all));
+}
+
+// ── STATE ──
+const today = new Date();
+const todayKey = dateKey(today);
+let dayData = loadDay(todayKey);
+
+function persist() {
+  saveDay(todayKey, dayData);
+}
+
+// ── QUOTES ──
+const QUOTES = [
+  { text: "Je préférerais être une météore superbe, chaque atome de moi en un éclat magnifique, plutôt qu'une planète endormie et permanente.", author: "Jack London" },
+  { text: "La fonction de l'homme est de vivre, pas d'exister. Je ne gaspillerai pas mes jours à tenter de prolonger ma vie.", author: "Jack London" },
+  { text: "Vous ne pouvez pas attendre l'inspiration. Vous devez la pourchasser avec une matraque.", author: "Jack London" },
+  { text: "Le but de la vie est de vivre, et de vivre c'est être éveillé, joyeux, ivre de la joie d'être vivant.", author: "Jack London" },
+  { text: "Je voudrais plutôt être cendres que poussière.", author: "Jack London" },
+  { text: "Tout ce que la vie peut donner de meilleur, c'est la chance de travailler dur à un travail qui mérite d'être fait.", author: "Jack London" },
+  { text: "Mieux vaut une heure de vie ardente que des années de léthargie.", author: "Jack London" },
+  { text: "Par l'ordre, je contrôle. Par la peur, je règne. Par la famille, je survis.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Je ne prie pas. Les genoux dans la boue, c'est pour les morts. Moi, je me bats debout.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Tout le monde est perdu. La différence, c'est que certains l'acceptent et les autres pas.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Les remords sont une perte de temps. Les regrets aussi.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Un homme avec un plan est toujours plus dangereux qu'un homme avec une arme.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Je n'oublie rien. C'est ma malédiction — et ma force.", author: "Thomas Shelby — Peaky Blinders" },
+  { text: "Ne vous asseyez pas et n'attendez pas que les opportunités viennent. Levez-vous et faites-les.", author: "Jack London" },
+  { text: "Les gens qui n'ont rien à faire ont toujours moins de temps que ceux qui travaillent.", author: "Jack London" },
+  { text: "Ce que tu fais quand tu n'es pas obligé détermine ce que tu seras quand tu ne pourras plus choisir.", author: "Thomas Shelby — Peaky Blinders" },
+];
+
+function renderQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - start) / 86400000);
+  const q = QUOTES[dayOfYear % QUOTES.length];
+  document.getElementById('daily-quote-text').textContent = '« ' + q.text + ' »';
+  document.getElementById('daily-quote-author').textContent = '— ' + q.author;
+}
+
+// ── SCHEDULE ──
+const SCHEDULE = [
+  { time: '7:00',  label: 'Réveil · Pesée',         h: 7,  m: 0  },
+  { time: '7:30',  label: 'Petit déjeuner',          h: 7,  m: 30 },
+  { time: '12:00', label: 'Déjeuner',                h: 12, m: 0  },
+  { time: '19:00', label: 'Dîner',                   h: 19, m: 0  },
+  { time: '22:00', label: 'Lit · Lecture (1h max)',  h: 22, m: 0  },
+];
+
+const SPORT = {
+  1: 'HIIT',    // Lundi
+  2: 'Squash',  // Mardi
+  3: 'HIIT',    // Mercredi
+  4: 'Squash',  // Jeudi
+  5: 'HIIT',    // Vendredi
+};
+
+// ── CLOCK + HEADER ──
+function tickClock() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  const elapsed = h * 3600 + m * 60 + s;
+  const total   = 86400;
+  const remain  = total - elapsed;
+  const hoursLeft = Math.floor(remain / 3600);
+  const pct = (elapsed / total * 100).toFixed(1);
+
+  // Header clock
+  document.getElementById('hclock-time').textContent =
+    String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  document.getElementById('hclock-date').textContent = formatDateShort(now);
+  document.getElementById('hclock-pct').textContent = pct + '% écoulé';
+
+  // Progress bar
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Sport badge
+  const day = now.getDay();
+  const sport = SPORT[day];
+  const badge = document.getElementById('sport-badge');
+  if (sport) {
+    badge.textContent = '⚡ ' + sport;
+    badge.className = 'sport-badge';
+  } else {
+    badge.textContent = 'Repos';
+    badge.className = 'sport-badge rest';
+  }
+
+  // Cap ring
+  const ratio = remain / total;
+  const offset = CIRC_CAP * (1 - ratio);
+  document.getElementById('cap-ring').style.strokeDashoffset = offset;
+  document.getElementById('cap-hours').textContent = hoursLeft;
+
+  // Planning
+  renderPlanning(h, m);
+}
+
+// ── PLANNING ──
+function renderPlanning(currentH, currentM) {
+  const list = document.getElementById('planning-list');
+  if (!list) return;
+  const currentMin = currentH * 60 + currentM;
+  list.innerHTML = '';
+
+  let nextIdx = -1;
+  for (let i = 0; i < SCHEDULE.length; i++) {
+    const itemMin = SCHEDULE[i].h * 60 + SCHEDULE[i].m;
+    if (itemMin > currentMin) { nextIdx = i; break; }
+  }
+
+  SCHEDULE.forEach((item, i) => {
+    const itemMin = item.h * 60 + item.m;
+    const isPast  = itemMin <= currentMin;
+    const isNext  = i === nextIdx;
+
+    const el = document.createElement('div');
+    el.className = 'plan-item' + (isPast ? ' past' : '') + (isNext ? ' next' : '');
+    el.innerHTML = `
+      <div class="plan-dot"></div>
+      <div class="plan-time">${item.time}</div>
+      <div class="plan-label">${item.label}</div>
+      <div class="plan-arrow">→</div>
+    `;
+    list.appendChild(el);
+  });
+
+  // Next event in header
+  const nextEl = document.getElementById('next-event');
+  if (nextIdx >= 0) {
+    const next = SCHEDULE[nextIdx];
+    const diff = (next.h * 60 + next.m) - currentMin;
+    const dh = Math.floor(diff / 60), dm = diff % 60;
+    nextEl.textContent = next.label + ' dans ' + (dh > 0 ? dh + 'h' : '') + (dm > 0 ? dm + 'min' : '');
+  } else {
+    nextEl.textContent = '';
+  }
+}
+
+// ── RENDER CAP ──
+function renderCap() {
+  const el   = document.getElementById('cap-obj');
+  const sub  = document.getElementById('cap-sub');
+  if (dayData.cap) {
+    el.textContent = dayData.cap;
+    el.classList.remove('empty');
+    sub.textContent = 'Clique pour modifier';
+  } else {
+    el.textContent = 'Définir ton cap';
+    el.classList.add('empty');
+    sub.textContent = '';
+  }
+}
+
+// ── RENDER ÉNERGIE ──
+function renderEnergy() {
+  const wrap = document.getElementById('energy-dots');
+  wrap.innerHTML = '';
+  const e = dayData.energy;
+  document.getElementById('energy-num').textContent = e || '—';
+  document.getElementById('energy-desc').textContent = e ? ENERGY_LABELS[e] : 'Non défini';
+
+  for (let i = 1; i <= 5; i++) {
+    const d = document.createElement('div');
+    d.className = 'e-dot' + (e === i ? ' active-' + i : '');
+    d.title = ENERGY_LABELS[i];
+    d.onclick = () => { dayData.energy = (dayData.energy === i ? 0 : i); persist(); renderEnergy(); };
+    wrap.appendChild(d);
+  }
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key  = dateKey(d);
+    const data = loadDay(key);
+    const hasData = data.cap || data.task || data.energy > 0;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'history-day';
+
+    wrap.innerHTML = `
+      <div class="history-day-header" onclick="toggleHistoryDay(this)">
+        <div class="history-day-date">${formatDateShort(d)}</div>
+        <div class="history-day-summary">
+          ${data.energy ? `<div class="h-badge filled">Énergie ${data.energy}/5</div>` : '<div class="h-badge">—</div>'}
+          ${data.cap ? `<div class="h-badge filled">Cap défini</div>` : ''}
+          <div class="h-chevron">▼</div>
+        </div>
+      </div>
+      <div class="history-day-body">
+        <div>
+          <div class="h-field-label">Objectif du jour</div>
+          <div class="h-field-val ${data.cap ? '' : 'na'}">${data.cap || 'Non défini'}</div>
+        </div>
+        <div>
+          <div class="h-field-label">Niveau d'énergie</div>
+          <div class="h-field-val ${data.energy ? '' : 'na'}">${data.energy ? data.energy + '/5 — ' + ENERGY_LABELS[data.energy] : 'Non défini'}</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(wrap);
+  }
+}
+
+function toggleHistoryDay(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.history-day-body.open').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.history-day-header.open').forEach(h => h.classList.remove('open'));
+  if (!isOpen) {
+    body.classList.add('open');
+    header.classList.add('open');
+  }
+}
+
+// ── PAGES ──
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ── MODAL ──
+let modalTarget = '';
+
+function openModal(target) {
+  modalTarget = target;
+  document.getElementById('modal-title').textContent = 'Quel est ton objectif du jour ?';
+  const ta = document.getElementById('modal-input');
+  const inp = document.getElementById('modal-input-line');
+  ta.style.display = 'block'; inp.style.display = 'none';
+  ta.value = dayData.cap || '';
+  setTimeout(() => ta.focus(), 50);
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+function handleBgClick(e) {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+}
+
+function saveModal() {
+  dayData.cap = document.getElementById('modal-input').value.trim();
+  persist(); renderCap();
+  closeModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && e.metaKey) {
+    if (document.getElementById('modal-bg').classList.contains('open')) saveModal();
+  }
+});
+
+// ── INIT ──
+renderCap();
+renderEnergy();
+renderQuote();
+tickClock();
+setInterval(tickClock, 1000);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
+</body>
+</html>
