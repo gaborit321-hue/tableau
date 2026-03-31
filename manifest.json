@@ -1,7 +1,7 @@
 {
   "name": "Le Tableau",
   "short_name": "Le Tableau",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#1a1814",
   "theme_color": "#1a1814",
